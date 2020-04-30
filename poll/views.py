@@ -19,37 +19,25 @@ class PingView(View):
         return HttpResponse("pong")
 
 class QuestionView(View):
-    def get(self, request, question_id):
-        questions = (
-            Question.
-            objects.
-            get(id = question_id)
-        )
-
-        choices = (
-            Choice.
-            objects.
-            filter(question_id = questions.id).
-            values()
-        )
-
-        question_data = {
-            'id'        : questions.id,
-            'question'  : questions.question,
-            'image_url' : questions.image_url,
-            'choice'    : [
-                {
-                    'id'     : choice["id"],
-                    'choice' : choice["choice"],
-                } for choice in choices ]
-        }
+    def get(self, request):
+        question_data = [
+            {
+                'id'        : question.id,
+                'question'  : question.question,
+                'image_url' : question.image_url,
+                'choice'    : [
+                    {
+                        'id'     : choice.id,
+                        'choice' : choice.choice,
+                    } for choice in Choice.objects.filter(question_id = question.id)]
+            } for question in Question.objects.all() ]
 
         return JsonResponse({"question_data" : question_data}, status = 200)
 
 class ResultView(View):
     def post(self, request):
         try:
-            score      = json.loads(request.body)["answer"]
+            scfore      = json.loads(request.body)["answer"]
             p_type     = json.loads(request.body)["type"]
             browser    = request.META['HTTP_USER_AGENT']
             ip_address = request.META['REMOTE_ADDR']
